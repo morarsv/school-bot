@@ -103,26 +103,12 @@ async def btn_back(callback: CallbackQuery,
     widget_data = dialog_manager.current_context().widget_data
     widget_data[DData.rating.value] = []
     widget_data[DData.heroes.value] = []
+    widget_data[DData.users_not_found.value] = False
     try:
         await dialog_manager.switch_to(state=AdminSG.MENU,
                                        show_mode=ShowMode.DELETE_AND_SEND)
     except AttributeError as e:
         await dialog_manager.switch_to(state=AdminSG.MENU,
-                                       show_mode=ShowMode.SEND)
-        logger.error(f'Error deleting message: {e}')
-
-
-async def btn_back_to_input_usernames(callback: CallbackQuery,
-                                      button: Button,
-                                      dialog_manager: DialogManager) -> None:
-    widget_data = dialog_manager.current_context().widget_data
-    widget_data[DData.rating.value] = []
-    widget_data[DData.heroes.value] = []
-    try:
-        await dialog_manager.switch_to(state=AdminSG.INPUT_USERNAMES,
-                                       show_mode=ShowMode.DELETE_AND_SEND)
-    except AttributeError as e:
-        await dialog_manager.switch_to(state=AdminSG.INPUT_USERNAMES,
                                        show_mode=ShowMode.SEND)
         logger.error(f'Error deleting message: {e}')
 

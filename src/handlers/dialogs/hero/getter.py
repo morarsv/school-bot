@@ -48,6 +48,7 @@ async def preview_getter(dialog_manager: DialogManager,
         'btn_daily_reward': i18n.btn.daily.reward(),
         'btn_school': i18n.btn.school(),
         'btn_rating': i18n.btn.rating(),
+        'btn_update': i18n.btn.update(),
         'reward': hero_data[HData.daily_reward.value]
     }
 

@@ -10,8 +10,7 @@ from src.states.dialog_state import AdminSG
 from src.constants.constant import DialogData as DData
 from src.handlers.dialogs.admin.handler import (btn_back, btn_switch_to_hero, success_input_summ, err_input_summ,
                                                 btn_accrual, success_input_usernames, btn_rating, btn_btn_list_heroes,
-                                                btn_back_to_input_usernames, btn_coins_accrual,
-                                                success_input_accrual_coins, err_input_accrual_coins,
+                                                btn_coins_accrual, success_input_accrual_coins, err_input_accrual_coins,
                                                 send_msg_handler)
 from src.handlers.dialogs.admin.getter import (input_getter, heroes_getter, found_heroes_getter,
                                                preview_getter, info_hero_getter, rating_getter,
@@ -99,7 +98,7 @@ found_usernames = Window(
     Button(
         text=Format(text='{btn_back}'),
         id='btn_back',
-        on_click=btn_back_to_input_usernames
+        on_click=btn_back
     ),
     state=AdminSG.FOUND_HEROES,
     getter=found_heroes_getter

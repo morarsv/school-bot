@@ -53,7 +53,7 @@ class AdminPanelInput:
     accrual: AdminPanelInputAccrual
 
     @staticmethod
-    def usernames() -> Literal["""Введи список ников через запятую. Регистр не важен.
+    def usernames() -> Literal["""Введи список ников через запятую. Регистр важен.
 &lt;i&gt;Прим.: Thorn_Elf, Борисыч9, ZaraDark &lt;/i&gt;"""]: ...
 
     @staticmethod
@@ -74,7 +74,7 @@ class AdminPanelListFill:
 
 class AdminPanelListEmpty:
     @staticmethod
-    def usernames() -> Literal["""Увы, но мне не удалось найти учеников. Проверь правильность имен."""]: ...
+    def usernames() -> Literal["""Увы, но мне не удалось найти учеников. Проверь правильность ников."""]: ...
 
 
 class AdminPanelInputAccrual:
@@ -326,6 +326,9 @@ class Btn:
 
     @staticmethod
     def cancel() -> Literal["""Отменить"""]: ...
+
+    @staticmethod
+    def update() -> Literal["""Обновить"""]: ...
 
 
 class BtnDaily:

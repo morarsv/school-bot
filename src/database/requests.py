@@ -140,9 +140,8 @@ async def find_heroes(
         hero_name: list[str]
 ) -> list[Users]:
     async with async_session() as session:
-        hero_name_lowered = [name.lower() for name in hero_name]
         stmt = (select(Users).
-                where(func.lower(Users.hero_name).in_(hero_name_lowered)))
+                where(func.lower(Users.hero_name).in_(hero_name)))
         result = await session.scalars(stmt)
         return result.all()
 

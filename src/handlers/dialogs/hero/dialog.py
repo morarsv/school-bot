@@ -18,6 +18,11 @@ preview = Window(
         text='src/data/img/classes/{h_class}_lvl{h_lvl}.jpg'
     )),
     Column(
+        SwitchTo(
+            text=Format(text='{btn_update}'),
+            id='btn_update',
+            state=HeroSG.PREVIEW
+        ),
         Button(
             text=Format(text='{btn_daily_reward}'),
             on_click=btn_daily_reward,
