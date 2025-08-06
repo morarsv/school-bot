@@ -5,7 +5,7 @@ import re
 from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.widgets.kbd import Button
 from aiogram.types import CallbackQuery, Message
-from aiogram_dialog.widgets.input import ManagedTextInput
+from aiogram_dialog.widgets.input import ManagedTextInput, MessageInput
 from typing import TYPE_CHECKING, Any
 from fluentogram import TranslatorRunner
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -127,6 +127,13 @@ async def btn_back_to_input_usernames(callback: CallbackQuery,
         logger.error(f'Error deleting message: {e}')
 
 
+async def btn_coins_accrual(callback: CallbackQuery,
+                            button: Button,
+                            dialog_manager: DialogManager) -> None:
+    widget_data = dialog_manager.current_context().widget_data
+    widget_data[DData.is_accrual_coins.value] = True
+
+
 async def success_input_usernames(message: Message,
                                   widget: ManagedTextInput,
                                   dialog_manager: DialogManager,
@@ -138,31 +145,52 @@ async def success_input_usernames(message: Message,
     usernames = re.split(r',\s*', text)
     users: list[Users] = await requests.find_heroes(async_session=session,
                                                     hero_name=usernames)
-    heroes = [(hero.hero_name, str(hero.telegram_id)) for hero in users]
-    widget_data[DData.heroes.value] = heroes
-
-    try:
-        await dialog_manager.switch_to(state=AdminSG.FOUND_HEROES,
-                                       show_mode=ShowMode.DELETE_AND_SEND)
-    except AttributeError as e:
-        await dialog_manager.switch_to(state=AdminSG.FOUND_HEROES,
-                                       show_mode=ShowMode.SEND)
-        logger.error(f'Error deleting message: {e}')
+    if users:
+        heroes = [(hero.hero_name, str(hero.telegram_id)) for hero in users]
+        widget_data[DData.heroes.value] = heroes
+        widget_data[DData.users_not_found.value] = False
+        if widget_data.get(DData.is_accrual_coins.value, False):
+            widget_data[DData.is_accrual_coins.value] = False
+            try:
+                await dialog_manager.switch_to(state=AdminSG.INPUT_COINS_ACCRUAL,
+                                               show_mode=ShowMode.DELETE_AND_SEND)
+            except AttributeError as e:
+                await dialog_manager.switch_to(state=AdminSG.INPUT_COINS_ACCRUAL,
+                                               show_mode=ShowMode.SEND)
+                logger.error(f'Error deleting message: {e}')
+        else:
+            try:
+                await dialog_manager.switch_to(state=AdminSG.FOUND_HEROES,
+                                               show_mode=ShowMode.DELETE_AND_SEND)
+            except AttributeError as e:
+                await dialog_manager.switch_to(state=AdminSG.FOUND_HEROES,
+                                               show_mode=ShowMode.SEND)
+                logger.error(f'Error deleting message: {e}')
+    else:
+        widget_data[DData.users_not_found.value] = True
+        try:
+            await dialog_manager.switch_to(state=AdminSG.INPUT_USERNAMES,
+                                           show_mode=ShowMode.DELETE_AND_SEND)
+        except AttributeError as e:
+            await dialog_manager.switch_to(state=AdminSG.INPUT_USERNAMES,
+                                           show_mode=ShowMode.SEND)
+            logger.error(f'Error deleting message: {e}')
 
 
 async def btn_accrual(callback: CallbackQuery,
                       button: Button,
                       dialog_manager: DialogManager) -> None:
-
     widget_data = dialog_manager.current_context().widget_data
     middleware_data = dialog_manager.middleware_data
 
     session: async_sessionmaker = middleware_data[poolData.session.value]
+    i18n: TranslatorRunner = middleware_data[poolData.i18n.value]
     heroes = widget_data[DData.heroes.value]
     heroes_names = [hero[0] for hero in heroes]
     users: list[Users] = await requests.find_heroes(async_session=session,
                                                     hero_name=heroes_names)
     async_requests = []
+    async_send_message = []
     for user in users:
         user.xp, coins = calculate_accrual(xp=user.xp, s_lvl=user.school_lvl)
         user.coins += coins
@@ -172,15 +200,30 @@ async def btn_accrual(callback: CallbackQuery,
             xp=user.xp,
             coins=user.coins
         ))
+        async_send_message.append(callback.message.bot.send_message(chat_id=user.telegram_id,
+                                                                    text=i18n.admin.msg.accrual(coins=coins)))
+    await asyncio.gather(*async_send_message)
     await asyncio.gather(*async_requests)
     widget_data[DData.users.value] = []
     try:
-        await dialog_manager.switch_to(state=AdminSG.INPUT_USERNAMES,
+        await dialog_manager.switch_to(state=AdminSG.MENU,
                                        show_mode=ShowMode.DELETE_AND_SEND)
     except AttributeError as e:
-        await dialog_manager.switch_to(state=AdminSG.INPUT_USERNAMES,
+        await dialog_manager.switch_to(state=AdminSG.MENU,
                                        show_mode=ShowMode.SEND)
         logger.error(f'Error deleting message: {e}')
+
+
+async def err_input_accrual_coins(message: Message,
+                                  widget: ManagedTextInput,
+                                  dialog_manager: DialogManager,
+                                  error: ValueError):
+    try:
+        await message.delete()
+    except AttributeError as e:
+        logger.error(f'Error deleting message: {e}')
+    await dialog_manager.switch_to(state=AdminSG.INPUT_COINS_ACCRUAL,
+                                   show_mode=ShowMode.EDIT)
 
 
 async def err_input_summ(message: Message,
@@ -197,6 +240,47 @@ async def err_input_summ(message: Message,
                                    show_mode=ShowMode.EDIT)
 
 
+async def success_input_accrual_coins(message: Message,
+                                      widget: ManagedTextInput,
+                                      dialog_manager: DialogManager,
+                                      text: str) -> None:
+    try:
+        await message.delete()
+    except AttributeError as e:
+        logger.error(f'Error deleting message: {e}')
+    widget_data = dialog_manager.current_context().widget_data
+    middleware_data = dialog_manager.middleware_data
+
+    i18n: TranslatorRunner = middleware_data[poolData.i18n.value]
+    summ = int(text)
+    session: async_sessionmaker = middleware_data[poolData.session.value]
+    heroes = widget_data[DData.heroes.value]
+    heroes_names = [hero[0] for hero in heroes]
+    users: list[Users] = await requests.find_heroes(async_session=session,
+                                                    hero_name=heroes_names)
+    async_requests = []
+    async_send_message = []
+    for user in users:
+        user.coins += summ
+        async_requests.append(requests.update_coins_by_tg_id(
+            async_session=session,
+            telegram_id=user.telegram_id,
+            coins=user.coins
+        ))
+        async_send_message.append(message.bot.send_message(chat_id=user.telegram_id,
+                                                           text=i18n.admin.msg.accrual(coins=summ)))
+    await asyncio.gather(*async_send_message)
+    await asyncio.gather(*async_requests)
+    widget_data[DData.users.value] = []
+    try:
+        await dialog_manager.switch_to(state=AdminSG.MENU,
+                                       show_mode=ShowMode.DELETE_AND_SEND)
+    except AttributeError as e:
+        await dialog_manager.switch_to(state=AdminSG.MENU,
+                                       show_mode=ShowMode.SEND)
+        logger.error(f'Error deleting message: {e}')
+
+
 async def success_input_summ(message: Message,
                              widget: ManagedTextInput,
                              dialog_manager: DialogManager,
@@ -208,6 +292,7 @@ async def success_input_summ(message: Message,
     widget_data = dialog_manager.current_context().widget_data
     middleware_data = dialog_manager.middleware_data
 
+    i18n: TranslatorRunner = middleware_data[poolData.i18n.value]
     summ = int(text)
     session: async_sessionmaker = middleware_data[poolData.session.value]
     heroes = widget_data[DData.heroes.value]
@@ -215,6 +300,7 @@ async def success_input_summ(message: Message,
     users: list[Users] = await requests.find_heroes(async_session=session,
                                                     hero_name=heroes_names)
     async_requests = []
+    async_send_message = []
     for user in users:
         user.coins -= summ
         async_requests.append(requests.update_coins_by_tg_id(
@@ -222,13 +308,16 @@ async def success_input_summ(message: Message,
             telegram_id=user.telegram_id,
             coins=user.coins
         ))
+        async_send_message.append(message.bot.send_message(chat_id=user.telegram_id,
+                                                           text=i18n.admin.msg.debt(coins=summ)))
+    await asyncio.gather(*async_send_message)
     await asyncio.gather(*async_requests)
     widget_data[DData.users.value] = []
     try:
-        await dialog_manager.switch_to(state=AdminSG.INPUT_USERNAMES,
+        await dialog_manager.switch_to(state=AdminSG.MENU,
                                        show_mode=ShowMode.DELETE_AND_SEND)
     except AttributeError as e:
-        await dialog_manager.switch_to(state=AdminSG.INPUT_USERNAMES,
+        await dialog_manager.switch_to(state=AdminSG.MENU,
                                        show_mode=ShowMode.SEND)
         logger.error(f'Error deleting message: {e}')
 
@@ -250,5 +339,44 @@ async def btn_switch_to_hero(callback: CallbackQuery,
                                        show_mode=ShowMode.DELETE_AND_SEND)
     except AttributeError as e:
         await dialog_manager.switch_to(state=AdminSG.INFO_HERO,
+                                       show_mode=ShowMode.SEND)
+        logger.error(f'Error deleting message: {e}')
+
+
+async def send_msg_handler(
+        message: Message,
+        message_input: MessageInput,
+        dialog_manager: DialogManager,
+) -> None:
+    middleware_data = dialog_manager.middleware_data
+    session: async_sessionmaker = middleware_data[poolData.session.value]
+    list_tg_id: list[int] = await requests.get_all_users_tg_id(async_session=session)
+
+    if message.photo:
+        photo = message.photo[-1]
+        caption = message.caption if message.caption else ''
+        file_id = photo.file_id
+        try:
+            async_send_message = [message.bot.send_photo(chat_id=tg_id,
+                                                         photo=file_id,
+                                                         caption=caption) for tg_id in list_tg_id]
+            await asyncio.gather(*async_send_message)
+        except AttributeError as e:
+            logger.error(f'Error send message: {e}')
+
+    elif message.text:
+        text = message.text
+        try:
+            async_send_message = [message.bot.send_message(chat_id=tg_id,
+                                                           text=text) for tg_id in list_tg_id]
+            await asyncio.gather(*async_send_message)
+        except AttributeError as e:
+            logger.error(f'Error send message: {e}')
+
+    try:
+        await dialog_manager.switch_to(state=AdminSG.MENU,
+                                       show_mode=ShowMode.DELETE_AND_SEND)
+    except AttributeError as e:
+        await dialog_manager.switch_to(state=AdminSG.MENU,
                                        show_mode=ShowMode.SEND)
         logger.error(f'Error deleting message: {e}')

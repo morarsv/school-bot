@@ -35,7 +35,7 @@ async def command_start_process(message: Message,
             await dialog_manager.start(state=AdminSG.MENU,
                                        mode=StartMode.RESET_STACK,
                                        show_mode=ShowMode.DELETE_AND_SEND)
-        except AttributeError as e:
+        except AttributeError:
             await dialog_manager.start(state=AdminSG.MENU,
                                        mode=StartMode.RESET_STACK,
                                        show_mode=ShowMode.SEND)
@@ -44,7 +44,7 @@ async def command_start_process(message: Message,
             await dialog_manager.start(state=HeroSG.PREVIEW,
                                        mode=StartMode.RESET_STACK,
                                        show_mode=ShowMode.DELETE_AND_SEND)
-        except AttributeError as e:
+        except AttributeError:
             await dialog_manager.start(state=HeroSG.PREVIEW,
                                        mode=StartMode.RESET_STACK,
                                        show_mode=ShowMode.SEND)

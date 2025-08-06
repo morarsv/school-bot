@@ -16,7 +16,7 @@ def get_cost_upgrade_school(s_lvl: int) -> int:
 
 def calculate_accrual(xp: int, s_lvl: int) -> tuple[int, int]:
     xp += 20
-    xp = 899 if xp >= 899 else xp
+    xp = 1099 if xp >= 1099 else xp
     h_lvl = xp // 100
     coins = get_coins_per_lvl(h_lvl=h_lvl, s_lvl=s_lvl)
     return xp, coins

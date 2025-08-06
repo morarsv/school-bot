@@ -26,7 +26,9 @@ async def preview_getter(dialog_manager: DialogManager,
         'menu_text': i18n.admin.panel.menu(),
         'btn_list_heroes': i18n.btn.list.heroes(),
         'btn_settings_heroes': i18n.btn.settings.heroes(),
-        'btn_rating': i18n.btn.rating()
+        'btn_rating': i18n.btn.rating(),
+        'btn_coins_accrual': i18n.btn.coins.accrual(),
+        'btn_write_everyone': i18n.btn.write.everyone()
     }
 
 
@@ -38,10 +40,15 @@ async def input_getter(dialog_manager: DialogManager,
     input_summ = i18n.err.input.summ() if widget_data.get(DData.err_input.value, False) \
         else i18n.admin.panel.input.summ()
     widget_data[DData.err_input.value] = False
+    input_usernames = (i18n.admin.panel.input.usernames() + '\n\n' +
+                       i18n.admin.panel.list.empty.usernames()) if widget_data.get(DData.users_not_found.value,
+                                                                                   False) else (i18n.admin.panel.
+                                                                                                input.usernames())
     return {
-        'input_usernames': i18n.admin.panel.input.usernames(),
+        'input_usernames': input_usernames,
         'input_summ': input_summ,
-        'btn_back': i18n.btn.back()
+        'input_msg': i18n.admin.panel.input.msg(),
+        'btn_cancel': i18n.btn.cancel()
     }
 
 
@@ -88,6 +95,19 @@ async def rating_getter(dialog_manager: DialogManager,
     return {
         'menu_text': menu_text,
         'btn_back': i18n.btn.back()
+    }
+
+
+async def input_accrual_getter(dialog_manager: DialogManager,
+                               event_from_user: User,
+                               i18n: TranslatorRunner,
+                               **_kwargs):
+    widget_data = dialog_manager.current_context().widget_data
+    heroes = widget_data[DData.heroes.value]
+    users = ', '.join([hero[0] for hero in heroes])
+    return {
+        'menu_text': i18n.admin.panel.input.accrual.summ(users=users),
+        'btn_cancel': i18n.btn.cancel()
     }
 
 

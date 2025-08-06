@@ -135,31 +135,22 @@ async def btn_daily_reward(callback: CallbackQuery,
     if reward_type == DData.xp.value:
         amount = random.randint(1, 7)
         old_lvl = hero.xp // 100
-        old_xp = hero.xp
-        hero.xp += amount
+        xp = amount + hero.xp
         await callback.answer(text=i18n.ur.reward.xp(xp=amount), show_alert=True)
-        current_lvl = hero.xp // 100
+        current_lvl = xp // 100
 
-        if old_lvl < current_lvl < 9:
+        if old_lvl < current_lvl < 10:
             await callback.answer(text=i18n.lvl.up(lvl=current_lvl))
-        if hero.xp < 900:
-            try:
-                await requests.update_xp_by_tg_id(
-                    async_session=session,
-                    telegram_id=telegram_id,
-                    xp=hero.xp
-                )
-            except DatabaseError as e:
-                logger.error(f"Общая ошибка базы данных: {e}")
-        if old_xp < 899 <= hero.xp:
-            try:
-                await requests.update_xp_by_tg_id(
-                    async_session=session,
-                    telegram_id=telegram_id,
-                    xp=899
-                )
-            except DatabaseError as e:
-                logger.error(f"Общая ошибка базы данных: {e}")
+
+        xp = 1099 if xp >= 1099 else xp
+        try:
+            await requests.update_xp_by_tg_id(
+                async_session=session,
+                telegram_id=telegram_id,
+                xp=xp
+            )
+        except DatabaseError as e:
+            logger.error(f"Общая ошибка базы данных: {e}")
 
     elif reward_type == DData.coins.value:
         amount = random.randint(1, 7)

@@ -17,7 +17,7 @@ def logging_custom_time(*args):
 
 
 def check_format_hero_name(text: str) -> str:
-    pattern = r'^[а-яА-Яa-zA-Z0-9_]{4,20}$'
+    pattern = r'^[а-яА-Я0-9_]{4,20}$'
     if re.match(pattern, text):
         return text
     raise ValueError

@@ -40,11 +40,11 @@ async def preview_getter(dialog_manager: DialogManager,
         school_stars=hero_data[HData.school_stars.value],
         reward=hero_data[HData.lesson_reward.value]
     )
-
+    h_lvl = 8 if hero_data[HData.hero_lvl.value] > 8 else hero_data[HData.hero_lvl.value]
     return {
         'menu_text': menu_text,
         'h_class': hero_data[HData.hero_class_en.value],
-        'h_lvl': hero_data[HData.hero_lvl.value],
+        'h_lvl': h_lvl,
         'btn_daily_reward': i18n.btn.daily.reward(),
         'btn_school': i18n.btn.school(),
         'btn_rating': i18n.btn.rating(),

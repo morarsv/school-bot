@@ -9,6 +9,8 @@ class AdminSG(StatesGroup):
     INPUT_SUMM = State()
     LIST_HEROES = State()
     INFO_HERO = State()
+    INPUT_COINS_ACCRUAL = State()
+    INPUT_MSG = State()
 
 
 class RegistrationSG(StatesGroup):

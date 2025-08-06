@@ -145,3 +145,12 @@ async def find_heroes(
                 where(func.lower(Users.hero_name).in_(hero_name_lowered)))
         result = await session.scalars(stmt)
         return result.all()
+
+
+async def get_all_users_tg_id(
+        async_session: async_sessionmaker
+) -> list[int]:
+    async with async_session() as session:
+        stmt = (select(Users.telegram_id))
+        result = await session.scalars(stmt)
+        return result.all()
