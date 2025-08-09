@@ -187,7 +187,7 @@ async def btn_accrual(callback: CallbackQuery,
             coins=user.coins
         ))
         async_send_message.append(callback.message.bot.send_message(chat_id=user.telegram_id,
-                                                                    text=i18n.admin.msg.accrual(coins=coins)))
+                                                                    text=i18n.admin.msg.lessons.accrual(coins=coins)))
     await asyncio.gather(*async_send_message)
     await asyncio.gather(*async_requests)
     widget_data[DData.users.value] = []

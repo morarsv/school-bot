@@ -85,18 +85,24 @@ class AdminPanelInputAccrual:
 
 
 class AdminMsg:
+    lessons: AdminMsgLessons
     daily: AdminMsgDaily
 
     @staticmethod
-    def accrual(*, coins) -> Literal["""Тебе начислено &lt;b&gt;{ $coins } коинов!&lt;/b&gt; 💰"""]: ...
+    def accrual(*, coins) -> Literal["""Тебе начислено за урок &lt;b&gt;{ $coins } коинов!&lt;/b&gt; 💰"""]: ...
 
     @staticmethod
     def debt(*, coins) -> Literal["""У тебя списано &lt;b&gt;{ $coins } коинов!&lt;/b&gt; 💰"""]: ...
 
 
+class AdminMsgLessons:
+    @staticmethod
+    def accrual(*, coins) -> Literal["""Тебе начислено за урок &lt;b&gt;20 XP и { $coins } коинов!&lt;/b&gt; 💰"""]: ...
+
+
 class AdminMsgDaily:
     @staticmethod
-    def rewards(*, coins) -> Literal["""Ты получил &lt;b&gt;20 XP и { $coins } коинов за урок!&lt;/b&gt;📖✨"""]: ...
+    def rewards(*, coins) -> Literal["""Ты получил ежедневную награду: 20 XP и { $coins } коинов!📖✨"""]: ...
 
 
 class AdminPanelInfo:
@@ -176,7 +182,7 @@ class MyHero:
 💰 Коины: { $coins }
 🏫 Уровень школы: { $school_stars }
 
-➕ За урок: +20 XP и { $reward } 💰"""]: ...
+➕ За урок: +20 XP и { $reward } коин 💰"""]: ...
 
     @staticmethod
     def school(*, school_stars, cost) -> Literal["""🏫 Магическая школа Лисхолл
