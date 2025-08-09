@@ -88,15 +88,15 @@ class AdminMsg:
     daily: AdminMsgDaily
 
     @staticmethod
-    def accrual(*, coins) -> Literal["""Тебе начислено { $coins } коинов!"""]: ...
+    def accrual(*, coins) -> Literal["""Тебе начислено &lt;b&gt;{ $coins } коинов!&lt;/b&gt; 💰"""]: ...
 
     @staticmethod
-    def debt(*, coins) -> Literal["""У тебя списано { $coins } коинов! 💰"""]: ...
+    def debt(*, coins) -> Literal["""У тебя списано &lt;b&gt;{ $coins } коинов!&lt;/b&gt; 💰"""]: ...
 
 
 class AdminMsgDaily:
     @staticmethod
-    def rewards(*, coins) -> Literal["""Ты получил 20 XP и { $coins } коинов за урок!📖✨"""]: ...
+    def rewards(*, coins) -> Literal["""Ты получил &lt;b&gt;20 XP и { $coins } коинов за урок!&lt;/b&gt;📖✨"""]: ...
 
 
 class AdminPanelInfo:
@@ -109,7 +109,7 @@ class AdminPanelInfo:
 💰 Коины: { $coins }
 🏫 Уровень школы: { $school_stars }
 
-➕ За урок: +20 XP и { $reward } 💰"""]: ...
+➕ За урок: +20 XP и { $reward } коин 💰"""]: ...
 
 
 class Registration:
